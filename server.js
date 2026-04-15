@@ -98,5 +98,5 @@ app.post('/api/score', (req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🏎️  Car Puzzle running → http://localhost:${PORT}`));

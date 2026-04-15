@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏎️ Car Ordering Puzzle</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header>
+  <h1>🏎️ Car Puzzle</h1>
+  <div class="mode-btns">
+    <button class="mode-btn <%- mode==='speed'?'active':'' %>" onclick="newGame('speed')">⚡ Speed</button>
+    <button class="mode-btn <%- mode==='price'?'active':'' %>" onclick="newGame('price')">💰 Price</button>
+    <button class="mode-btn <%- mode==='name' ?'active':'' %>" onclick="newGame('name')">🔤 Name</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Info bar -->
+  <div class="info-bar">
+    <div>
+      <div class="label">Mode</div>
+      <div class="value" id="mode-display">
+        <%- mode==='speed' ? '⚡ Speed' : mode==='price' ? '💰 Price' : '🔤 Name' %>
+      </div>
+    </div>
+    <div>
+      <div class="label">Moves</div>
+      <div class="value" id="moves-count">0</div>
+    </div>
+    <button id="validate-btn" onclick="validate()">✅ Check Order</button>
+  </div>
+
+  <!-- Message banner -->
+  <div id="message"></div>
+
+  <!-- Instruction -->
+  <p style="color:var(--muted);font-size:.9rem;text-align:center;">
+    Drag cards to arrange cars in
+    <%- mode==='speed' ? 'ascending speed (slowest → fastest)' :
+        mode==='price' ? 'ascending price (cheapest → most expensive)' :
+                         'alphabetical order (A → Z)' %>
+  </p>
+
+  <!-- Car list -->
+  <div id="car-list">
+    <% cars.forEach(function(car, idx){ %>
+    <div class="car-card" data-id="<%= car.id %>"
+         style="--car-color:<%= car.color %>">
+      <div class="car-rank"><%= idx + 1 %></div>
+
+      <!-- Inline SVG car illustration -->
+      <svg class="car-svg" viewBox="0 0 110 60" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="28" width="100" height="22" rx="6" fill="<%= car.color %>" opacity=".9"/>
+        <polygon points="22,28 38,12 72,12 88,28" fill="<%= car.color %>"/>
+        <polygon points="26,28 40,15 55,15 55,28" fill="#1a2a4a" opacity=".7"/>
+        <polygon points="57,15 72,15 84,28 57,28" fill="#1a2a4a" opacity=".7"/>
+        <circle cx="28" cy="50" r="9" fill="#222"/>
+        <circle cx="28" cy="50" r="5" fill="#555"/>
+        <circle cx="82" cy="50" r="9" fill="#222"/>
+        <circle cx="82" cy="50" r="5" fill="#555"/>
+        <ellipse cx="105" cy="36" rx="4" ry="3" fill="#ffffaa" opacity=".8"/>
+        <line x1="5" y1="38" x2="105" y2="38" stroke="white" stroke-width=".8" opacity=".2"/>
+      </svg>
+
+      <div class="car-info">
+        <div class="car-name"><%= car.name %></div>
+        <div class="car-stats">
+          <div class="stat">Speed <span><%= car.speed %> km/h</span></div>
+          <div class="stat">Price <span>$<%= car.price.toLocaleString() %></span></div>
+        </div>
+      </div>
+      <div class="drag-handle">⠿</div>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard">
+    <h2>🏆 Top Scores</h2>
+    <ul id="score-list"><li style="color:var(--muted)">Loading…</li></ul>
+  </div>
+
+</main>
+
+<!-- Win modal -->
+<div id="win-modal">
+  <div class="win-box">
+    <h2>🎉 You Won!</h2>
+    <p>Cars are in the correct order!</p>
+    <div class="win-score" id="win-score-val">—</div>
+    <input id="player-name" type="text" placeholder="Your name" maxlength="30">
+    <div class="win-btns">
+      <button class="btn-primary"   onclick="submitScore()">Submit Score</button>
+      <button class="btn-secondary" onclick="closeModal()">Skip</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="fireworks-canvas"></canvas>
+
+<script src="/js/drag.js"></script>
+<script src="/js/fireworks.js"></script>
+<script>
+  const currentMode = "<%= mode %>";
+  let lastScore = 0;
+
+  function newGame(mode) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/game?action=shuffle&mode=' + mode;
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  async function validate() {
+    const order = window.getOrderedIds();
+    const res   = await fetch('/game?action=validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order })
+    });
+    const data = await res.json();
+    const msg  = document.getElementById('message');
+
+    if (data.correct) {
+      lastScore = data.score;
+      document.getElementById('win-score-val').textContent = data.score + ' pts';
+      document.getElementById('win-modal').classList.add('show');
+      startFireworks();
+    } else {
+      document.getElementById('moves-count').textContent = data.moves;
+      msg.className = 'error';
+      msg.textContent = '❌ Not quite — keep rearranging!';
+      setTimeout(() => { msg.className = ''; msg.textContent = ''; }, 2500);
+    }
+  }
+
+  async function submitScore() {
+    const name = document.getElementById('player-name').value.trim() || 'Anonymous';
+    await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, score: lastScore, mode: currentMode })
+    });
+    closeModal();
+    loadLeaderboard();
+    newGame(currentMode);
+  }
+
+  function closeModal() {
+    document.getElementById('win-modal').classList.remove('show');
+    stopFireworks();
+  }
+
+  async function loadLeaderboard() {
+    const res  = await fetch('/api/score');
+    const data = await res.json();
+    const ul   = document.getElementById('score-list');
+    if (!data.length) { ul.innerHTML = '<li style="color:var(--muted)">No scores yet</li>'; return; }
+    ul.innerHTML = data.map((s, i) =>
+      `<li>
+        <span class="lb-rank">#${i+1}</span>
+        <span>${s.name} <small style="color:var(--muted)">(${s.mode})</small></span>
+        <span class="lb-score">${s.score}</span>
+       </li>`
+    ).join('');
+  }
+
+  loadLeaderboard();
+  setInterval(loadLeaderboard, 15000);
+</script>
+
+</body>
+</html>

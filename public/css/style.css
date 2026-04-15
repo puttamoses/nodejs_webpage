@@ -1,0 +1,284 @@
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d0d;
+  --surface: #1a1a2e;
+  --card: #16213e;
+  --accent: #e63946;
+  --gold: #f4a261;
+  --text: #eaeaea;
+  --muted: #888;
+  --radius: 12px;
+  --shadow: 0 8px 32px rgba(0,0,0,.5);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ===== Header ===== */
+header {
+  width: 100%;
+  background: linear-gradient(90deg, #0d0d0d 0%, #1a1a2e 50%, #0d0d0d 100%);
+  border-bottom: 2px solid var(--accent);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+
+header h1 {
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--accent);
+}
+
+.mode-btns { display: flex; gap: 10px; }
+.mode-btn {
+  background: transparent;
+  border: 1px solid var(--muted);
+  color: var(--text);
+  padding: 6px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: .85rem;
+  transition: all .2s;
+}
+.mode-btn:hover, .mode-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ===== Main Layout ===== */
+main {
+  width: min(900px, 96vw);
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== Info Bar ===== */
+.info-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 24px;
+  border: 1px solid #333;
+}
+
+.info-bar .label {
+  font-size: .75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-bar .value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+#validate-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all .2s;
+  box-shadow: 0 0 12px rgba(230,57,70,.4);
+}
+#validate-btn:hover {
+  background: #ff6b6b;
+  box-shadow: 0 0 22px rgba(230,57,70,.7);
+}
+
+/* ===== Message Banner ===== */
+#message {
+  display: none;
+  text-align: center;
+  padding: 14px 24px;
+  border-radius: var(--radius);
+  font-size: 1.05rem;
+  font-weight: 600;
+  animation: fadein .3s ease;
+}
+#message.success { background: #2d6a4f; border: 1px solid #52b788; color: #d8f3dc; display: block; }
+#message.error   { background: #6b2737; border: 1px solid var(--accent); color: #ffb3c1; display: block; }
+
+/* ===== Car Grid / Drop Zone ===== */
+#car-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 60px;
+}
+
+/* ===== Car Card ===== */
+.car-card {
+  background: var(--card);
+  border: 2px solid #2e2e4e;
+  border-radius: var(--radius);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: grab;
+  user-select: none;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+  position: relative;
+  overflow: hidden;
+}
+.car-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--car-color, var(--accent));
+}
+.car-card:active { cursor: grabbing; }
+.car-card.dragging {
+  opacity: .4;
+  transform: scale(.97);
+}
+.car-card.drag-over {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(244,162,97,.4);
+  transform: scale(1.01);
+}
+
+.car-rank {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ===== SVG Car Illustration ===== */
+.car-svg { width: 110px; height: 60px; flex-shrink: 0; }
+
+.car-info { flex: 1; }
+.car-name  { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.car-stats { display: flex; gap: 20px; }
+.stat      { font-size: .8rem; color: var(--muted); }
+.stat span { color: var(--text); font-weight: 600; }
+
+.drag-handle {
+  color: var(--muted);
+  font-size: 1.3rem;
+  cursor: grab;
+  padding: 4px 8px;
+}
+
+/* ===== Leaderboard ===== */
+#leaderboard {
+  background: var(--surface);
+  border: 1px solid #333;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+#leaderboard h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+#score-list { list-style: none; }
+#score-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid #2a2a40;
+  font-size: .9rem;
+}
+#score-list li:last-child { border-bottom: none; }
+.lb-rank { color: var(--muted); width: 24px; }
+.lb-score { color: var(--gold); font-weight: 700; }
+
+/* ===== Win Modal ===== */
+#win-modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  align-items: center; justify-content: center;
+  z-index: 200;
+  animation: fadein .3s ease;
+}
+#win-modal.show { display: flex; }
+.win-box {
+  background: var(--surface);
+  border: 2px solid var(--gold);
+  border-radius: 20px;
+  padding: 40px 48px;
+  text-align: center;
+  max-width: 400px; width: 90%;
+  box-shadow: 0 0 60px rgba(244,162,97,.3);
+}
+.win-box h2 { font-size: 2rem; color: var(--gold); margin-bottom: 8px; }
+.win-box p  { color: var(--muted); margin-bottom: 20px; }
+.win-score  { font-size: 3rem; font-weight: 800; color: var(--accent); margin-bottom: 24px; }
+.win-box input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid #444;
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+.win-box input:focus { outline: 2px solid var(--gold); }
+.win-btns { display: flex; gap: 10px; }
+.btn-primary {
+  flex: 1; background: var(--accent); color: #fff;
+  border: none; padding: 12px; border-radius: 8px;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: background .2s;
+}
+.btn-primary:hover { background: #ff6b6b; }
+.btn-secondary {
+  flex: 1; background: transparent; color: var(--text);
+  border: 1px solid #444; padding: 12px; border-radius: 8px;
+  font-size: 1rem; cursor: pointer; transition: all .2s;
+}
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ===== Canvas ===== */
+#fireworks-canvas {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 199;
+}
+
+/* ===== Animations ===== */
+@keyframes fadein { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .car-svg { display: none; }
+  .car-stats { flex-wrap: wrap; gap: 10px; }
+  header h1 { font-size: 1.1rem; }
+  .mode-btn { padding: 5px 12px; font-size: .78rem; }
+}
